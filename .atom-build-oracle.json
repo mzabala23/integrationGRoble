@@ -1,0 +1,18 @@
+[
+    {
+       "targetName" : "ebs_unifier: dev",
+        "host" : "172.16.120.180",
+        "sid" : "pritest",
+        "port" : 1592,
+        "user" : "ebs_unifier",
+        "password" : "Verano2016"
+    },
+    {
+       "targetName" : "ebs_unifier: prod",
+       "host" : "172.16.120.170",
+       "sid" : "priprod",
+       "port" : 1590,
+       "user" : "ebs_unifier",
+       "password" : "Verano2016"
+    }
+]
