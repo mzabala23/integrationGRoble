@@ -4,12 +4,12 @@ as
 
 --*Cursor que verifica las credenciales de autenticación a Unifier
 CURSOR c_auth_unifier IS
-      SELECT SHORTNAME,AUTHCODE FROM int_auth;
+      SELECT SHORTNAME,AUTHCODE,ENDPOINT FROM int_auth where active='N';
 
 --Cursor que captura la información del nodo raiz de la estructura jerarquica
-CURSOR c_node_root(SHORTNAME VARCHAR2,AUTHCODE VARCHAR2) IS
+CURSOR c_node_root(SHORTNAME VARCHAR2,AUTHCODE VARCHAR2, ENDPOINT VARCHAR2) IS
      SELECT parentid
-      from (select xmltype(replace(replace(replace(getcostsheet(SHORTNAME,AUTHCODE,UNIFIER_PROJECT_CODE).extract('//xmlcontents/text()').getClobVal(),'&lt;','<'),'&gt;','>'),'&quot;','"')) valor
+      from (select xmltype(replace(replace(replace(fn_getcostsheet(my_hash(SHORTNAME),my_hash(AUTHCODE),UNIFIER_PROJECT_CODE,ENDPOINT).extract('//xmlcontents/text()').getClobVal(),'&lt;','<'),'&gt;','>'),'&quot;','"')) valor
             from dual) x
       left join
          xmltable('/List_Wrapper/costcodes/costcode'
@@ -31,8 +31,9 @@ err_num NUMBER;
 err_msg VARCHAR2(255);
 
 --Variables explicitas para almacenamiento de resultados en registros
-v_shortname varchar2(15);
-v_authcode varchar2(10);
+v_shortname varchar2(4000);
+v_authcode varchar2(4000);
+v_endpoint varchar2(100);
 
 begin
 
@@ -44,9 +45,10 @@ begin
      IF vb_exists_auth_unifier THEN
        v_shortname :=r_auth.SHORTNAME;
        v_authcode  :=r_auth.AUTHCODE;
+       v_endpoint  :=r_auth.ENDPOINT;
      END IF;
 
-     OPEN c_node_root (v_shortname,v_authcode);
+     OPEN c_node_root (v_shortname,v_authcode,v_endpoint);
           LOOP
           FETCH c_node_root INTO r_node_root;
           EXIT WHEN c_node_root%NOTFOUND;
@@ -58,7 +60,6 @@ begin
 
  --Bloque de excepciones
     EXCEPTION
-
          WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('Error'||SQLCODE||SQLERRM);
 
          err_num := SQLCODE;
@@ -68,8 +69,4 @@ begin
             VALUES(SYSDATE, 'N/A', '995', 'Error agregando lineas de costo a la tabla INT_COST_SHEET, error:'||err_msg||'',0,'N/A');
 
 end int_sp_costsheet;
-/
-begin
-  int_sp_costsheet('P-0052');
-end;
 /

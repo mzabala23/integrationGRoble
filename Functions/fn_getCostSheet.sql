@@ -28,16 +28,16 @@ BEGIN
 */
 /*Petición tipo SOAP que llama el metodo getWBSCodes() de Unifier*/
    soap_req_msg           :=
-      '<?xml version                                ="1.0" encoding="UTF-8"?>
-        <soap:Envelope xmlns:soap                   ="http://schemas.xmlsoap.org/soap/envelope/"xmlns:xs="http://www.w3.org/2001/XMLSchema">
-          <soap:Body>
-            <getWBSCodes xmlns                      ="http://general.service.webservices.skire.com/" soap:encondingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-              <shortname xsi:type                   ="xsd:string">'||SHORTNAME||'</shortname>
-              <authcode xsi:type                    ="xsd:string">'||AUTHCODE||'</authcode>
-              <projectNumber xsi:type               ="xsd:string">'||PROJECTNUMBER||'</projectNumber>
-            </getWBSCodes>
-          </soap:Body>
-        </soap:Envelope>';
+      '<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:gen="http://general.service.webservices.skire.com">
+         <soapenv:Header/>
+         <soapenv:Body>
+            <gen:getWBSCodes soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+               <shortname xsi:type="xsd:string">'||SHORTNAME||'</shortname>
+               <authcode xsi:type="xsd:string">'||AUTHCODE||'</authcode>
+               <projectnumber xsi:type="xsd:string">'||PROJECTNUMBER||'</projectnumber>
+            </gen:getWBSCodes>
+         </soapenv:Body>
+      </soapenv:Envelope>';
   --
   --Bloque de variables para la petición del servicio web que pasara al HEADER
   --
@@ -75,7 +75,7 @@ BEGIN
    v_http_response        := UTL_HTTP.get_response(v_http_request);
 
    --Verificar que la respuesta sea exitosa (Status =200)
-if v_http_response.status_code                      =200 then
+if v_http_response.status_code                      =utl_http.HTTP_OK then
 
   begin
     <<loop_respuesta>>
@@ -97,7 +97,7 @@ if v_http_response.status_code                      =200 then
     for i in 0..ceil(length(v_clob_response_1)/v_line_size) - 1
     loop
       v_line              := substr(v_clob_response_1,i*v_line_size+1,v_line_size);
-      v_clob_response_2   :=v_clob_response_2||substr(trim(v_line),1,1600);
+      v_clob_response_2   :=v_clob_response_2||substr(trim(v_line),1,100000);
       exit when i>v_lines_count-1;
     end loop;
 
