@@ -1,7 +1,6 @@
 set define off;
 create or replace procedure int_sp_costsheet (UNIFIER_PROJECT_CODE IN VARCHAR2)
 as
-
 --*Cursor que verifica las credenciales de autenticación a Unifier
 CURSOR c_auth_unifier IS
       SELECT SHORTNAME,AUTHCODE,ENDPOINT FROM int_auth where active='N';
@@ -9,7 +8,7 @@ CURSOR c_auth_unifier IS
 --Cursor que captura la información del nodo raiz de la estructura jerarquica
 CURSOR c_node_root(SHORTNAME VARCHAR2,AUTHCODE VARCHAR2, ENDPOINT VARCHAR2) IS
      SELECT parentid
-      from (select xmltype(replace(replace(replace(fn_getcostsheet(my_hash(SHORTNAME),my_hash(AUTHCODE),UNIFIER_PROJECT_CODE,ENDPOINT).extract('//xmlcontents/text()').getClobVal(),'&lt;','<'),'&gt;','>'),'&quot;','"')) valor
+      from (select xmltype(replace(replace(replace(fn_getcostsheet(encrypt_decrypt.decrypt(SHORTNAME),encrypt_decrypt.decrypt(AUTHCODE),UNIFIER_PROJECT_CODE,ENDPOINT).extract('//xmlcontents/text()').getClobVal(),'&lt;','<'),'&gt;','>'),'&quot;','"')) valor
             from dual) x
       left join
          xmltable('/List_Wrapper/costcodes/costcode'
@@ -53,13 +52,14 @@ begin
           FETCH c_node_root INTO r_node_root;
           EXIT WHEN c_node_root%NOTFOUND;
 
-            DBMS_OUTPUT.PUT_LINE('La raiz de esta estructura es');
+            DBMS_OUTPUT.PUT_LINE('La raiz de esta estructura es'||r_node_root.parentid);
 
           END LOOP;
       CLOSE c_node_root;
 
  --Bloque de excepciones
     EXCEPTION
+
          WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('Error'||SQLCODE||SQLERRM);
 
          err_num := SQLCODE;

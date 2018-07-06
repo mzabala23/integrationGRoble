@@ -5,17 +5,18 @@ as
   function encrypt(v_string varchar2) return raw deterministic;
   function decrypt(v_string raw) return varchar2 deterministic;
 end;
-/
 */
+
 
 
 create or replace package body encrypt_decrypt
 as
-
 --Variables Globales
-encryption_type PLS_INTEGER :=DMBS_CRYPTO.ENCRYPT_DES+DBMS_CRYPTO.CHAIN_CBS+DBMS_CRYPTO.PAD_PKCS5;
+encryption_type PLS_INTEGER := SYS.DBMS_CRYPTO.ENCRYPT_AES
+         + SYS.DBMS_CRYPTO.CHAIN_CBC
+         + SYS.DBMS_CRYPTO.PAD_PKCS5;
 
-encryption_key RAW(32):=UTL_RAW.CAST_TO_RAW('V3R4N0O2O18GROBLE');
+encryption_key RAW(24):='FCF50295B0A28167FF88218A2EF8575102A20874305C8F2A';--UTL_RAW.CAST_TO_RAW('MESSYKICKGOAL');
 
   function encrypt(v_string varchar2) return raw deterministic
   is
@@ -47,4 +48,5 @@ encryption_key RAW(32):=UTL_RAW.CAST_TO_RAW('V3R4N0O2O18GROBLE');
   end decrypt;
 
 end;
+
 /
